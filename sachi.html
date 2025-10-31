@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sachi Transaction Scanner</title>
+<style>
+  body {
+  font-family: 'Poppins', sans-serif;
+  background: radial-gradient(circle at top, #060818, #000);
+  color: #fff;
+  margin: 0;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+h1 {
+  font-size: 2em;
+  margin: 20px 0 10px;
+  background: linear-gradient(90deg, #ff7b00, #ff00ff);
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: glow 3s infinite alternate;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 5px #ff00ff; }
+  to { text-shadow: 0 0 25px #ff7b00; }
+}
+
+.container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 20px;
+  margin-top: 15px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 1em;
+  text-align: center;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+button {
+  background: linear-gradient(90deg, #ff00ff, #ff7b00);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 22px;
+  color: white;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  transition: 0.3s;
+  width: 100%;
+  max-width: 250px;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #ff00ff;
+}
+
+#result {
+  margin-top: 15px;
+  font-size: 1.05em;
+  word-wrap: break-word;
+}
+
+#txList {
+  margin-top: 25px;
+  text-align: left;
+  background: rgba(255,255,255,0.05);
+  padding: 15px;
+  border-radius: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-size: 0.9em;
+  word-wrap: break-word;
+}
+
+.tx-item {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 0;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.tx-item:last-child {
+  border: none;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+iframe {
+  margin-top: 30px;
+  width: 100%;
+  height: 350px;
+  border: none;
+  border-radius: 15px;
+}
+
+.links {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 0.9em;
+  color: #ccc;
+  word-wrap: break-word;
+}
+
+.links a {
+  display: block;
+  color: #ff7b00;
+  text-decoration: none;
+  margin: 5px 0;
+  overflow-wrap: anywhere;
+}
+
+.disclaimer {
+  margin-top: 15px;
+  font-size: 0.8em;
+  color: #aaa;
+  text-align: center;
+  max-width: 400px;
+  line-height: 1.4em;
+  padding: 0 10px;
+}
+
+/* 📱 Mobile Adjustments */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.5em;
+  }
+
+  .container {
+    padding: 15px;
+  }
+
+  button {
+    font-size: 0.95em;
+    padding: 10px 18px;
+  }
+
+  #txList {
+    font-size: 0.85em;
+    max-height: 250px;
+  }
+}
+</style>
+</head>
+<body>
+<h1>🔍 Sachi Transaction Scanner</h1>
+
+<div class="container">
+  <input type="text" id="walletInput" placeholder="Enter your Solana wallet address">
+  <button onclick="scanTransactions()">Scan Transactions</button>
+  <div id="result"></div>
+  <div id="txList"></div>
+</div>
+
+<iframe 
+  src="https://dexscreener.com/solana/7Y2TPeq3hqw21LRTCi4wBWoivDngCpNNJsN1hzhZpump"
+  width="100%"
+  height="400"
+  style="border-radius:20px;border:none;"
+  allowfullscreen>
+</iframe>
+
+<div class="disclaimer">
+  ⚠️ This website does <b>NOT</b> require wallet connection.<br>
+  It’s safe and protected from wallet draining.<br>
+  Just enter your wallet address to view transactions.
+</div>
+
+<div class="links">
+  <a href="https://x.com/sachi_coin?t=_CcULE5j8N8bmAEGErPPMg&s=09" target="_blank">🐦 Join Sachi on X</a>
+  <a href="https://discord.gg/sachicoin" target="_blank">💬 Join Discord</a>
+  <a href="https://pump.fun/coin/7Y2TPeq3hqw21LRTCi4wBWoivDngCpNNJsN1hzhZpump" target="_blank">🪙 Buy Sachi on Pump.fun</a>
+</div>
+
+<script>
+const HELIUS_API_KEY = "944a3332-20cf-47be-9390-6ca28d0e3999";
+const TARGET_ADDRESS = "7UMUX5hBQ6VfvtiAVT9k3sC1Dk8RyRZbwvd8ZaLBzYEn";
+const SACHI_MINT = "7Y2TPeq3hqw21LRTCi4wBWoivDngCpNNJsN1hzhZpump";
+
+async function scanTransactions() {
+  const wallet = document.getElementById("walletInput").value.trim();
+  const resultDiv = document.getElementById("result");
+  const txList = document.getElementById("txList");
+  resultDiv.innerHTML = "⏳ Scanning transactions...";
+  txList.innerHTML = "";
+
+  if (!wallet) {
+    resultDiv.innerHTML = "⚠️ Please enter a valid wallet address.";
+    return;
+  }
+
+  try {
+    const url = `https://api.helius.xyz/v0/addresses/${wallet}/transactions?api-key=${HELIUS_API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    let totalSachi = 0;
+    let txHTML = "";
+
+    data.forEach(tx => {
+      if (!tx.tokenTransfers) return;
+      tx.tokenTransfers.forEach(t => {
+        if (t.mint === SACHI_MINT && t.toUserAccount === TARGET_ADDRESS) {
+          totalSachi += parseFloat(t.tokenAmount);
+          const sig = tx.signature.slice(0, 6) + "..." + tx.signature.slice(-6);
+          const date = new Date(tx.timestamp * 1000).toLocaleString();
+          txHTML += `
+            <div class="tx-item">
+              📦 <b>${t.tokenAmount}</b> SACHI sent<br>
+              🕒 ${date}<br>
+              🔗 Tx: <a href="https://solscan.io/tx/${tx.signature}" target="_blank" style="color:#ff7b00;">${sig}</a>
+            </div>
+          `;
+        }
+      });
+    });
+
+    const price = await fetchSachiPrice();
+    const totalValue = (totalSachi * price).toFixed(4);
+
+    resultDiv.innerHTML = `
+      ✅ <b>Total Sent to ${TARGET_ADDRESS}</b><br>
+      <b>${totalSachi.toFixed(6)} SACHI</b><br>
+      ≈ <b>$${totalValue} USD</b><br>
+      (Price: $${price.toFixed(6)} per SACHI)
+    `;
+
+    txList.innerHTML = txHTML || "No SACHI transactions found to this address.";
+  } catch (e) {
+    resultDiv.innerHTML = "❌ Error fetching transactions.";
+    console.error(e);
+  }
+}
+
+async function fetchSachiPrice() {
+  try {
+    const res = await fetch("https://api.dexscreener.com/latest/dex/tokens/7Y2TPeq3hqw21LRTCi4wBWoivDngCpNNJsN1hzhZpump");
+    const data = await res.json();
+    return parseFloat(data.pairs[0].priceUsd);
+  } catch (e) {
+    console.error("Price fetch error:", e);
+    return 0;
+  }
+}
+</script>
+</body>
+</html>
